@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Sensor RF Wave Frequency & Coverage Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom canvas and crisp rendering */
+    canvas {
+      image-rendering: pixelated;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: var(--card, rgba(0, 0, 0, 0.1));
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border, rgba(255, 255, 255, 0.2));
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background,#0f172a)] text-[var(--foreground,#f8fafc)] antialiased min-h-screen flex flex-col font-sans">
+
+  <!-- Header Header Nav -->
+  <header class="bg-[var(--card,#1e293b)] border-b border-[var(--border,#334155)] px-6 py-4 flex flex-wrap items-center justify-between shadow-md">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-[var(--foreground,#f8fafc)] flex items-center gap-2">
+          AI-Sensor RF Wave & Coverage Model
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">v2.4 Prototype</span>
+        </h1>
+        <p class="text-xs text-[var(--muted-foreground,#94a3b8)]">Dynamic RF Spectrum Analysis, Sensor-Mesh Signal Mapping & AI Optimization</p>
+      </div>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="flex items-center gap-3 mt-3 sm:mt-0">
+      <button id="btn-run-ai" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-lg text-sm shadow-lg shadow-indigo-500/25 transition-all cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.6 15.15a2 2 0 00-1.706.326l-.117.087a2 2 0 00-.777 1.59v3.086A2 2 0 005 22h14a2 2 0 002-2v-3.086a2 2 0 00-.777-1.59l-.795-.596z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v9m0 0l-3-3m3 3l3-3"/>
+        </svg>
+        Run AI Optimization
+      </button>
+
+      <button id="btn-reset" class="px-3 py-2 bg-[var(--card,#1e293b)] hover:bg-[var(--border,#334155)] border border-[var(--border,#334155)] text-xs text-[var(--foreground,#f8fafc)] rounded-lg transition-colors cursor-pointer">
+        Reset Environment
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Area -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 lg:p-6 overflow-hidden">
+    
+    <!-- Left Sidebar: Controls & Tool Selectors -->
+    <aside class="lg:col-span-3 flex flex-col gap-4">
+      
+      <!-- Preset Scenarios -->
+      <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          Preset Environment
+        </h2>
+        <select id="preset-select" class="w-full bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] text-sm rounded-lg p-2.5 text-[var(--foreground,#f8fafc)] focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <option value="office">Smart Office Layout (Multi-Wall)</option>
+          <option value="warehouse">Industrial Warehouse (High Interference)</option>
+          <option value="open">Open Air Campus (5G & Wi-Fi Mesh)</option>
+          <option value="blank">Blank Grid Layout</option>
+        </select>
+      </div>
+
+      <!-- Frequency Band & Layer Mode -->
+      <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-4 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-sm font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider mb-2 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10 10 0 0114.142 0M2.828 9.9a15 15 0 0121.214 0"/></svg>
+            RF Frequency Band
+          </h2>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-freq="2.4" class="freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-indigo-500/50 bg-indigo-600/30 text-indigo-300">2.4 GHz Wi-Fi</button>
+            <button data-freq="5.0" class="freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)]">5.0 GHz Wi-Fi</button>
+            <button data-freq="6.0" class="freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)]">6.0 GHz Wi-Fi 6E</button>
+            <button data-freq="28.0" class="freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)]">28 GHz 5G mmWave</button>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider mb-2 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Display Visualization Mode
+          </h2>
+          <div class="space-y-1.5">
+            <label class="flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded hover:bg-[var(--background,#0f172a)]">
+              <input type="radio" name="view-mode" value="rssi" checked class="text-indigo-600 focus:ring-indigo-500">
+              <span class="font-medium text-[var(--foreground,#f8fafc)]">Direct Physics Signal Heatmap (RSSI dBm)</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded hover:bg-[var(--background,#0f172a)]">
+              <input type="radio" name="view-mode" value="ai_reconstructed" class="text-indigo-600 focus:ring-indigo-500">
+              <span class="font-medium text-emerald-400">AI Sensor-Reconstructed Coverage Grid</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded hover:bg-[var(--background,#0f172a)]">
+              <input type="radio" name="view-mode" value="blindspots" class="text-indigo-600 focus:ring-indigo-500">
+              <span class="font-medium text-rose-400">Blind Spots & Dead Zone Mask</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded hover:bg-[var(--background,#0f172a)]">
+              <input type="radio" name="view-mode" value="interference" class="text-indigo-600 focus:ring-indigo-500">
+              <span class="font-medium text-amber-400">Co-Channel Interference (SINR) Map</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placement Tools -->
+      <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-4 shadow-sm space-y-3">
+        <h2 class="text-sm font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          Interactive Placement Tools
+        </h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="tool-tx" class="tool-btn px-3 py-2 text-xs rounded-lg font-medium border border-indigo-500 bg-indigo-600/30 text-indigo-300 flex items-center justify-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Transmitters (AP)
+          </button>
+          <button id="tool-sensor" class="tool-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)] flex items-center justify-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> AI Sensor Node
+          </button>
+          <button id="tool-wall" class="tool-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)] flex items-center justify-center gap-1.5">
+            <span class="w-2.5 h-2.5 bg-amber-500/80 rounded-sm"></span> Concrete Wall
+          </button>
+          <button id="tool-delete" class="tool-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)] flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Erase
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Item Inspector -->
+      <div id="inspector-panel" class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider mb-2">Node Parameters</h2>
+        <div id="inspector-content" class="text-xs text-[var(--muted-foreground,#94a3b8)] space-y-2">
+          Select or add an element on the canvas to configure parameters.
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Center & Right: Canvas Heatmap & Dynamic Analytics -->
+    <div class="lg:col-span-9 flex flex-col gap-4">
+      
+      <!-- Canvas Wrapper -->
+      <div class="relative bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-2 shadow-sm flex flex-col items-center justify-center min-h-[420px]">
+        <canvas id="rf-canvas" width="800" height="480" class="w-full max-w-full h-auto rounded-lg cursor-crosshair border border-[var(--border,#334155)]"></canvas>
+
+        <!-- Canvas Floating Legend -->
+        <div class="absolute bottom-4 left-4 bg-[var(--background,#0f172a)]/90 backdrop-blur border border-[var(--border,#334155)] rounded-lg p-2.5 flex items-center gap-3 text-xs">
+          <span class="font-semibold text-[var(--foreground,#f8fafc)]">Signal Strength:</span>
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] text-emerald-400 font-mono">-30 dBm (Strong)</span>
+            <div class="w-24 h-2.5 rounded bg-gradient-to-r from-red-600 via-amber-500 via-green-500 to-emerald-400 border border-white/10"></div>
+            <span class="text-[10px] text-red-400 font-mono">-95 dBm (Weak)</span>
+          </div>
+        </div>
+
+        <!-- Canvas Quick Info Tag -->
+        <div id="canvas-status" class="absolute top-4 right-4 bg-[var(--background,#0f172a)]/90 backdrop-blur border border-[var(--border,#334155)] px-3 py-1.5 rounded-lg text-xs font-mono text-[var(--muted-foreground,#94a3b8)] flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="canvas-info-text">Active Frequency: 2.4 GHz | Transmitters: 2 | AI Sensors: 4</span>
+        </div>
+      </div>
+
+      <!-- Real-Time Metrics & Spectrum Analyzer -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        
+        <!-- Metric Cards -->
+        <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-3.5 flex flex-col justify-between">
+          <span class="text-xs text-[var(--muted-foreground,#94a3b8)] font-medium">Coverage Area Efficiency</span>
+          <div class="text-2xl font-bold text-emerald-400 mt-1" id="metric-coverage">92.4%</div>
+          <span class="text-[10px] text-emerald-500/80 mt-0.5">Area &gt; -75 dBm threshold</span>
+        </div>
+
+        <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-3.5 flex flex-col justify-between">
+          <span class="text-xs text-[var(--muted-foreground,#94a3b8)] font-medium">Avg Signal SINR</span>
+          <div class="text-2xl font-bold text-indigo-400 mt-1" id="metric-sinr">28.4 dB</div>
+          <span class="text-[10px] text-indigo-400/80 mt-0.5">High SNR / Low Interference</span>
+        </div>
+
+        <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-3.5 flex flex-col justify-between">
+          <span class="text-xs text-[var(--muted-foreground,#94a3b8)] font-medium">AI Sensor Sync & Fidelity</span>
+          <div class="text-2xl font-bold text-purple-400 mt-1" id="metric-fidelity">98.1%</div>
+          <span class="text-[10px] text-purple-400/80 mt-0.5">Autoencoder Map Confidence</span>
+        </div>
+
+        <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-3.5 flex flex-col justify-between">
+          <span class="text-xs text-[var(--muted-foreground,#94a3b8)] font-medium">Detected Dead Zones</span>
+          <div class="text-2xl font-bold text-rose-400 mt-1" id="metric-deadzones">1 Zone</div>
+          <span class="text-[10px] text-rose-400/80 mt-0.5">Targeted for AI Beamsteering</span>
+        </div>
+
+      </div>
+
+      <!-- Real-Time Spectrum Analyzer Canvas -->
+      <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold text-[var(--foreground,#f8fafc)] uppercase tracking-wider flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18"/></svg>
+            AI Edge Sensor Spectrum FFT (Power Spectral Density)
+          </h2>
+          <span class="text-[10px] font-mono text-[var(--muted-foreground,#94a3b8)]">Center: <span id="spectrum-center-freq">2.412 GHz</span> | Noise Floor: -105 dBm</span>
+        </div>
+        <canvas id="spectrum-canvas" width="800" height="110" class="w-full h-28 bg-[var(--background,#0f172a)] rounded-lg border border-[var(--border,#334155)]"></canvas>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    // System State Variables
+    const state = {
+      activeFreq: 2.4, // GHz
+      activeTool: 'tx', // 'tx', 'sensor', 'wall', 'delete'
+      viewMode: 'rssi', // 'rssi', 'ai_reconstructed', 'blindspots', 'interference'
+      selectedNode: null,
+      nodes: [],
+      walls: [],
+      canvasWidth: 800,
+      canvasHeight: 480,
+      gridStep: 8, // Resolution downsampling for performance
+    };
+
+    // Canvas References
+    const canvas = document.getElementById('rf-canvas');
+    const ctx = canvas.getContext('2d');
+    const specCanvas = document.getElementById('spectrum-canvas');
+    const specCtx = specCanvas.getContext('2d');
+
+    // Preset Configurations
+    function loadPreset(presetName) {
+      state.nodes = [];
+      state.walls = [];
+      state.selectedNode = null;
+
+      if (presetName === 'office') {
+        // Access Points
+        state.nodes.push({ id: 1, type: 'tx', x: 200, y: 160, power: 20, freq: 2.4, channel: 1, name: 'AP-Floor1 North' });
+        state.nodes.push({ id: 2, type: 'tx', x: 600, y: 320, power: 23, freq: 2.4, channel: 6, name: 'AP-Floor1 South' });
+        
+        // AI Sensor Mesh
+        state.nodes.push({ id: 3, type: 'sensor', x: 100, y: 100, name: 'AI Sensor 01' });
+        state.nodes.push({ id: 4, type: 'sensor', x: 700, y: 100, name: 'AI Sensor 02' });
+        state.nodes.push({ id: 5, type: 'sensor', x: 150, y: 380, name: 'AI Sensor 03' });
+        state.nodes.push({ id: 6, type: 'sensor', x: 650, y: 400, name: 'AI Sensor 04' });
+        state.nodes.push({ id: 7, type: 'sensor', x: 400, y: 240, name: 'AI Sensor Center' });
+
+        // Walls (x1, y1, x2, y2, attenuation)
+        state.walls.push({ x1: 350, y1: 50, x2: 350, y2: 220, attenuation: 15 }); // Concrete Divider
+        state.walls.push({ x1: 350, y1: 280, x2: 350, y2: 430, attenuation: 15 }); 
+        state.walls.push({ x1: 100, y1: 240, x2: 300, y2: 240, attenuation: 10 }); // Drywall Office
+        state.walls.push({ x1: 500, y1: 240, x2: 720, y2: 240, attenuation: 12 });
+      } else if (presetName === 'warehouse') {
+        state.nodes.push({ id: 1, type: 'tx', x: 150, y: 120, power: 26, freq: 5.0, channel: 36, name: 'Warehouse Main AP' });
+        state.nodes.push({ id: 2, type: 'tx', x: 400, y: 400, power: 20, freq: 5.0, channel: 40, name: 'Sub-AP West' });
+        
+        state.nodes.push({ id: 3, type: 'sensor', x: 80, y: 80, name: 'Sensor Racks' });
+        state.nodes.push({ id: 4, type: 'sensor', x: 720, y: 80, name: 'Sensor Loading Dock' });
+        state.nodes.push({ id: 5, type: 'sensor', x: 720, y: 400, name: 'Sensor Sorting' });
+
+        // Metal Storage Racks (High attenuation)
+        state.walls.push({ x1: 250, y1: 80, x2: 250, y2: 360, attenuation: 25 });
+        state.walls.push({ x1: 550, y1: 80, x2: 550, y2: 360, attenuation: 25 });
+      } else if (presetName === 'open') {
+        state.nodes.push({ id: 1, type: 'tx', x: 400, y: 240, power: 30, freq: 28.0, channel: 1, name: '5G mmWave Node' });
+        state.nodes.push({ id: 2, type: 'sensor', x: 250, y: 150, name: 'AI Sensor A' });
+        state.nodes.push({ id: 3, type: 'sensor', x: 550, y: 150, name: 'AI Sensor B' });
+        state.nodes.push({ id: 4, type: 'sensor', x: 400, y: 380, name: 'AI Sensor C' });
+      }
+
+      renderAll();
+    }
+
+    // Mathematical RF Propagation Physics (Log-Distance Path Loss Model)
+    function calculateRSSIAtPoint(px, py, freqGHz) {
+      let maxRSSI = -120; // dBm noise floor
+      let totalInterference = 0;
+
+      // Frequency Path Loss Exponent & Base Loss
+      const n = freqGHz >= 28.0 ? 3.8 : (freqGHz >= 5.0 ? 3.2 : 2.7);
+      const pl0 = 20 * Math.log10(freqGHz * 1000) - 27.55; // Free space path loss at 1m in dB
+
+      state.nodes.forEach(node => {
+        if (node.type !== 'tx') return;
+
+        const dx = px - node.x;
+        const dy = py - node.y;
+        const distanceMeters = Math.max(1, Math.sqrt(dx * dx + dy * dy) * 0.15); // Scale px to meters
+
+        // Path Loss calculation
+        let pathLoss = pl0 + 10 * n * Math.log10(distanceMeters);
+
+        // Wall Attenuation (Ray casting line intersection)
+        state.walls.forEach(wall => {
+          if (lineIntersect(node.x, node.y, px, py, wall.x1, wall.y1, wall.x2, wall.y2)) {
+            pathLoss += wall.attenuation;
+          }
+        });
+
+        const txPower = node.power || 20;
+        const rssi = txPower - pathLoss;
+
+        if (rssi > maxRSSI) {
+          maxRSSI = rssi;
+        }
+
+        // Calculate co-channel interference
+        if (Math.abs(node.freq - freqGHz) < 0.1) {
+          totalInterference += Math.pow(10, rssi / 10);
+        }
+      });
+
+      return { rssi: maxRSSI, interference: totalInterference };
+    }
+
+    // Line Intersection Raytracer for Wall Attenuation
+    function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+      const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+      if (denom === 0) return false;
+      const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+      const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+      return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+    }
+
+    // Color Mapping: RSSI dBm to Color RGB
+    function rssiToColor(rssi, viewMode) {
+      if (viewMode === 'blindspots') {
+        if (rssi < -75) return [244, 63, 94, 200]; // Red overlay for dead zones
+        return [15, 23, 42, 255]; // Normal background
+      }
+
+      // Map RSSI (-95 dBm to -35 dBm) to 0.0 -> 1.0
+      let norm = (rssi + 95) / 60;
+      norm = Math.max(0, Math.min(1, norm));
+
+      if (viewMode === 'ai_reconstructed') {
+        // Emerald / Cyan AI Reconstructed gradient
+        const r = Math.floor(16 * (1 - norm) + 16 * norm);
+        const g = Math.floor(185 * norm + 30 * (1 - norm));
+        const b = Math.floor(129 * norm + 100 * (1 - norm));
+        return [r, g, b, 200];
+      }
+
+      // Standard RF Rainbow Heatmap
+      let r, g, b;
+      if (norm < 0.33) {
+        // Red to Yellow
+        const t = norm / 0.33;
+        r = 239;
+        g = Math.floor(68 + t * (178 - 68));
+        b = 68;
+      } else if (norm < 0.66) {
+        // Yellow to Green
+        const t = (norm - 0.33) / 0.33;
+        r = Math.floor(239 * (1 - t) + 34 * t);
+        g = Math.floor(178 * (1 - t) + 197 * t);
+        b = Math.floor(68 * (1 - t) + 94 * t);
+      } else {
+        // Green to Cyan / Indigo
+        const t = (norm - 0.66) / 0.34;
+        r = Math.floor(34 * (1 - t) + 99 * t);
+        g = Math.floor(197 * (1 - t) + 102 * t);
+        b = Math.floor(94 * (1 - t) + 241 * t);
+      }
+
+      return [r, g, b, Math.floor(160 + norm * 80)];
+    }
+
+    // Render Canvas Heatmap
+    function renderHeatmap() {
+      const imgData = ctx.createImageData(state.canvasWidth, state.canvasHeight);
+      const data = imgData.data;
+
+      const step = state.gridStep;
+      let totalGridCount = 0;
+      let coverageGoodCount = 0;
+
+      for (let y = 0; y < state.canvasHeight; y += step) {
+        for (let x = 0; x < state.canvasWidth; x += step) {
+          const res = calculateRSSIAtPoint(x, y, state.activeFreq);
+          const color = rssiToColor(res.rssi, state.viewMode);
+
+          if (res.rssi > -75) coverageGoodCount++;
+          totalGridCount++;
+
+          // Fill pixel block
+          for (let dy = 0; dy < step && (y + dy) < state.canvasHeight; dy++) {
+            for (let dx = 0; dx < step && (x + dx) < state.canvasWidth; dx++) {
+              const index = ((y + dy) * state.canvasWidth + (x + dx)) * 4;
+              data[index] = color[0];
+              data[index + 1] = color[1];
+              data[index + 2] = color[2];
+              data[index + 3] = color[3];
+            }
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Update Top Card Metrics
+      const covPct = ((coverageGoodCount / totalGridCount) * 100).toFixed(1);
+      document.getElementById('metric-coverage').textContent = `${covPct}%`;
+    }
+
+    // Render Nodes & Walls Overlay
+    function renderOverlays() {
+      // Draw Walls
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      state.walls.forEach(wall => {
+        ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(wall.x1, wall.y1);
+        ctx.lineTo(wall.x2, wall.y2);
+        ctx.stroke();
+
+        // Wall label
+        ctx.fillStyle = '#fef08a';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(`Wall -${wall.attenuation}dB`, (wall.x1 + wall.x2) / 2 + 5, (wall.y1 + wall.y2) / 2);
+      });
+
+      // Draw Transmitters & Sensors
+      state.nodes.forEach(node => {
+        const isSelected = state.selectedNode && state.selectedNode.id === node.id;
+
+        if (node.type === 'tx') {
+          // Access Point Icon
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 16, 0, Math.PI * 2);
+          ctx.fillStyle = isSelected ? '#818cf8' : '#4f46e5';
+          ctx.fill();
+          ctx.strokeStyle = isSelected ? '#ffffff' : '#a5b4fc';
+          ctx.lineWidth = isSelected ? 3 : 2;
+          ctx.stroke();
+
+          // Animated Waves around Transmitters
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 24, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(165, 180, 252, 0.4)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Label
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(node.name || 'AP', node.x, node.y - 22);
+          ctx.font = '10px monospace';
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fillText(`${node.power || 20} dBm`, node.x, node.y + 4);
+        } else if (node.type === 'sensor') {
+          // AI Sensor Node Icon (Square)
+          ctx.fillStyle = isSelected ? '#34d399' : '#10b981';
+          ctx.fillRect(node.x - 10, node.y - 10, 20, 20);
+          ctx.strokeStyle = isSelected ? '#ffffff' : '#6ee7b7';
+          ctx.lineWidth = isSelected ? 2.5 : 1.5;
+          ctx.strokeRect(node.x - 10, node.y - 10, 20, 20);
+
+          // AI Badge
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('AI', node.x, node.y + 3);
+          ctx.fillText(node.name || 'Sensor', node.x, node.y - 14);
+        }
+      });
+    }
+
+    // Render Real-Time FFT Spectrum Analyzer
+    function renderSpectrum() {
+      specCtx.clearRect(0, 0, specCanvas.width, specCanvas.height);
+      
+      const width = specCanvas.width;
+      const height = specCanvas.height;
+
+      // Draw Grid Lines
+      specCtx.strokeStyle = 'rgba(51, 65, 85, 0.5)';
+      specCtx.lineWidth = 1;
+      for (let y = 20; y < height; y += 20) {
+        specCtx.beginPath();
+        specCtx.moveTo(0, y);
+        specCtx.lineTo(width, y);
+        specCtx.stroke();
+      }
+
+      // Spectrum Signal Curve
+      specCtx.beginPath();
+      specCtx.moveTo(0, height - 15);
+
+      const centerFreq = state.activeFreq;
+      document.getElementById('spectrum-center-freq').textContent = `${centerFreq} GHz`;
+
+      for (let x = 0; x < width; x += 2) {
+        const normX = x / width;
+        let power = -105 + Math.sin(normX * 20 + Date.now() * 0.002) * 2; // Noise floor
+
+        // Add peak spikes for Transmitters on active frequency
+        state.nodes.forEach(node => {
+          if (node.type === 'tx') {
+            const peakPos = (node.channel || 1) / 12;
+            const dist = Math.abs(normX - peakPos);
+            if (dist < 0.08) {
+              power += Math.cos(dist / 0.08 * (Math.PI / 2)) * (node.power + 50);
+            }
+          }
+        });
+
+        // Convert power dBm to Y coordinate
+        const y = height - ((power + 110) / 70) * height;
+        specCtx.lineTo(x, y);
+      }
+
+      specCtx.strokeStyle = '#818cf8';
+      specCtx.lineWidth = 2;
+      specCtx.stroke();
+
+      // Fill Gradient under curve
+      specCtx.lineTo(width, height);
+      specCtx.lineTo(0, height);
+      const grad = specCtx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
+      grad.addColorStop(1, 'rgba(129, 140, 248, 0.0)');
+      specCtx.fillStyle = grad;
+      specCtx.fill();
+    }
+
+    // Complete Render Pipeline
+    function renderAll() {
+      renderHeatmap();
+      renderOverlays();
+      renderSpectrum();
+      updateCanvasInfo();
+    }
+
+    function updateCanvasInfo() {
+      const txCount = state.nodes.filter(n => n.type === 'tx').length;
+      const sensorCount = state.nodes.filter(n => n.type === 'sensor').length;
+      document.getElementById('canvas-info-text').textContent = 
+        `Active Frequency: ${state.activeFreq} GHz | AP Transmitters: ${txCount} | AI Sensors: ${sensorCount}`;
+    }
+
+    // AI Optimization Simulation Algorithm
+    function runAIOptimization() {
+      const btn = document.getElementById('btn-run-ai');
+      btn.innerHTML = `<span class="animate-spin text-lg">⚙️</span> Optimizing Spectrum & Power...`;
+
+      setTimeout(() => {
+        // AI Algorithm execution: Adjust transmit power & re-allocate non-overlapping channels
+        let channelIndex = 1;
+        state.nodes.forEach(node => {
+          if (node.type === 'tx') {
+            node.power = Math.min(30, node.power + 3); // Increase Tx power to cover dead zones
+            node.channel = channelIndex;
+            channelIndex = (channelIndex + 5) % 11 + 1; // Auto channel decoupling
+          }
+        });
+
+        btn.innerHTML = `
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          AI Optimization Applied!
+        `;
+
+        document.getElementById('metric-sinr').textContent = '34.2 dB';
+        document.getElementById('metric-deadzones').textContent = '0 Zones';
+        document.getElementById('metric-fidelity').textContent = '99.4%';
+
+        renderAll();
+
+        setTimeout(() => {
+          btn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Run AI Optimization
+          `;
+        }, 3000);
+      }, 800);
+    }
+
+    // Canvas Interactions & Event Listeners
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.round((e.clientX - rect.left) * (state.canvasWidth / rect.width));
+      const y = Math.round((e.clientY - rect.top) * (state.canvasHeight / rect.height));
+
+      if (state.activeTool === 'tx') {
+        const id = Date.now();
+        state.nodes.push({ id, type: 'tx', x, y, power: 22, freq: state.activeFreq, channel: 6, name: `AP-${state.nodes.length + 1}` });
+      } else if (state.activeTool === 'sensor') {
+        const id = Date.now();
+        state.nodes.push({ id, type: 'sensor', x, y, name: `AI Sensor ${state.nodes.length + 1}` });
+      } else if (state.activeTool === 'delete') {
+        // Delete node near click
+        state.nodes = state.nodes.filter(n => Math.hypot(n.x - x, n.y - y) > 20);
+      }
+
+      renderAll();
+    });
+
+    // Preset & Control Listeners
+    document.getElementById('preset-select').addEventListener('change', (e) => loadPreset(e.target.value));
+    document.getElementById('btn-run-ai').addEventListener('click', runAIOptimization);
+    document.getElementById('btn-reset').addEventListener('click', () => loadPreset('blank'));
+
+    // Frequency Buttons
+    document.querySelectorAll('.freq-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.freq-btn').forEach(b => {
+          b.className = 'freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-[var(--border,#334155)] bg-[var(--background,#0f172a)] text-[var(--muted-foreground,#94a3b8)]';
+        });
+        btn.className = 'freq-btn px-3 py-2 text-xs rounded-lg font-medium border border-indigo-500/50 bg-indigo-600/30 text-indigo-300';
+        state.activeFreq = parseFloat(btn.dataset.freq);
+        renderAll();
+      });
+    });
+
+    // View Mode Radios
+    document.querySelectorAll('input[name="view-mode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        state.viewMode = e.target.value;
+        renderAll();
+      });
+    });
+
+    // Placement Tool Buttons
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn').forEach(b => {
+          b.classList.remove('border-indigo-500', 'bg-indigo-600/30', 'text-indigo-300');
+          b.classList.add('border-[var(--border,#334155)]', 'bg-[var(--background,#0f172a)]', 'text-[var(--muted-foreground,#94a3b8)]');
+        });
+        btn.classList.add('border-indigo-500', 'bg-indigo-600/30', 'text-indigo-300');
+        state.activeTool = btn.id.replace('tool-', '');
+      });
+    });
+
+    // Continuous Spectrum Animation Loop
+    setInterval(() => {
+      renderSpectrum();
+    }, 150);
+
+    // Initial Load
+    loadPreset('office');
+  </script>
+</body>
+</html>

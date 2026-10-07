@@ -7,7 +7,6 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
-    /* Bulletproof Embedded CSS for Offline Event Resilience */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; overflow: hidden; }
     #canvas-container { width: 100vw; height: 100vh; display: block; position: absolute; top: 0; left: 0; }
@@ -148,7 +147,6 @@
   </footer>
 
   <script>
-    // Bulletproof Dual Engine: Three.js WebGL with Native Canvas 2D Fallback
     let activeFreq = 2.4;
     let txPower = 23;
     let wallAttenuation = 18;
@@ -168,7 +166,6 @@
 
     const container = document.getElementById('canvas-container');
 
-    // Check if Three.js loaded
     if (typeof THREE !== 'undefined') {
       document.getElementById('render-engine-tag').textContent = 'Three.js WebGL 3D Active';
       initThreeJS();
@@ -177,7 +174,6 @@
       initNativeEngine();
     }
 
-    // --- THREE.JS ENGINE IMPLEMENTATION ---
     function initThreeJS() {
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x020617);
@@ -203,14 +199,12 @@
       gridHelper.position.y = -0.1;
       scene.add(gridHelper);
 
-      // Wall
       const wallGeo = new THREE.BoxGeometry(0.8, 6, 40);
       const wallMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3, transparent: true, opacity: 0.85 });
       const wallMesh = new THREE.Mesh(wallGeo, wallMat);
       wallMesh.position.set(0, 3, 0);
       scene.add(wallMesh);
 
-      // AP Transmitters
       const waveSpheres = [];
       transmitters.forEach(tx => {
         const pillarGeo = new THREE.CylinderGeometry(0.3, 0.3, tx.y, 16);
@@ -233,7 +227,6 @@
         waveSpheres.push(waveSphere);
       });
 
-      // AI Sensors
       sensors.forEach(s => {
         const sGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
         const sMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.5 });
@@ -311,7 +304,6 @@
       window.addEventListener('recalculate_3d', updateSurface);
     }
 
-    // --- NATIVE CANVAS 2.5D ISOMETRIC ENGINE (OFFLINE FALLBACK) ---
     function initNativeEngine() {
       const cvs = document.createElement('canvas');
       container.appendChild(cvs);
@@ -334,7 +326,6 @@
         const cx = cvs.width / 2;
         const cy = cvs.height / 2 + 50;
 
-        // Draw 3D Iso Grid
         ctx.strokeStyle = '#1e293b';
         ctx.lineWidth = 1;
         for (let r = -200; r <= 200; r += 30) {
@@ -350,7 +341,6 @@
       drawIsometric();
     }
 
-    // Telemetry & Spectrum logic
     function updateTelemetry() {
       const list = document.getElementById('sensor-telemetry-list');
       if (!list || list.children.length > 0) return;
@@ -396,7 +386,6 @@
       fctx.stroke();
     }
 
-    // Event Controls
     document.querySelectorAll('.freq-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.freq-btn').forEach(b => b.className = 'freq-btn px-3 py-1.5 rounded font-medium text-slate-400 hover:text-white cursor-pointer');
