@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Sensor RF Wave Coverage Simulation Video Player</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    body { background-color: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
+    .glass-box {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="p-3 bg-slate-950 text-slate-100">
+
+  <div class="glass-box rounded-xl p-4 max-w-4xl mx-auto space-y-3 shadow-2xl">
+    
+    <!-- Top Video Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+        <h2 class="text-sm font-bold text-white tracking-wide">
+          AI RF Wave Frequency & Sensor Coverage — Simulation Recording
+        </h2>
+      </div>
+      <span class="text-xs font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+        HD 60FPS Video Rendering
+      </span>
+    </div>
+
+    <!-- Main Video Simulation Canvas -->
+    <div class="relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+      <canvas id="video-canvas" width="800" height="400" class="w-full h-auto cursor-pointer"></canvas>
+
+      <!-- Video Floating HUD Stats -->
+      <div class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded text-[11px] font-mono flex items-center gap-3 text-slate-300">
+        <span>FREQ: <strong class="text-indigo-400" id="vid-freq">2.4 GHz</strong></span>
+        <span>COVERAGE: <strong class="text-emerald-400" id="vid-cov">94.8%</strong></span>
+        <span>AI NODES: <strong class="text-purple-400">5 Active</strong></span>
+      </div>
+
+      <!-- Play Overlay Center Icon -->
+      <div id="play-overlay" class="absolute inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center cursor-pointer transition-opacity">
+        <div class="w-16 h-16 rounded-full bg-indigo-600/90 text-white flex items-center justify-center shadow-2xl border border-indigo-400/50 hover:scale-110 transition-transform">
+          <svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Controls Toolbar -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 space-y-2 text-xs">
+      <!-- Timeline Scrubber Bar -->
+      <div class="flex items-center gap-3">
+        <span id="time-current" class="font-mono text-indigo-400 text-[11px] w-10">00:00</span>
+        <input type="range" id="timeline" min="0" max="30" value="0" step="0.1" class="flex-1 accent-indigo-500 h-1.5 bg-slate-800 rounded cursor-pointer">
+        <span id="time-duration" class="font-mono text-slate-400 text-[11px] w-10">00:30</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-1">
+        <div class="flex items-center gap-2">
+          <button id="btn-play-pause" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded flex items-center gap-1 cursor-pointer">
+            <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span id="label-play">Play Video</span>
+          </button>
+
+          <button id="btn-restart" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded flex items-center gap-1 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Restart
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1 font-mono text-[11px]">
+          <span class="text-slate-400 mr-1">Speed:</span>
+          <button data-speed="0.5" class="speed-btn px-2 py-1 bg-slate-800 text-slate-400 rounded hover:text-white">0.5x</button>
+          <button data-speed="1.0" class="speed-btn px-2 py-1 bg-indigo-600 text-white rounded font-bold">1.0x</button>
+          <button data-speed="2.0" class="speed-btn px-2 py-1 bg-slate-800 text-slate-400 rounded hover:text-white">2.0x</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const cvs = document.getElementById('video-canvas');
+    const ctx = cvs.getContext('2d');
+    const timeline = document.getElementById('timeline');
+    const timeCurrent = document.getElementById('time-current');
+    const btnPlay = document.getElementById('btn-play-pause');
+    const iconPlay = document.getElementById('icon-play');
+    const labelPlay = document.getElementById('label-play');
+    const playOverlay = document.getElementById('play-overlay');
+
+    let isPlaying = false;
+    let currentTime = 0;
+    let playbackSpeed = 1.0;
+    let animFrame = null;
+    let lastTimestamp = 0;
+
+    const APs = [
+      { x: 200, y: 140, power: 22, name: 'AP-01' },
+      { x: 600, y: 260, power: 24, name: 'AP-02' }
+    ];
+
+    const wall = { x1: 400, y1: 40, x2: 400, y2: 360, attenuation: 18 };
+
+    function renderVideoFrame(t) {
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < cvs.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+      }
+      for (let y = 0; y < cvs.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+      }
+
+      const isOptimized = t >= 15.0;
+      const freq = t < 10 ? 2.4 : (t < 20 ? 5.0 : 28.0);
+      document.getElementById('vid-freq').textContent = `${freq} GHz`;
+      document.getElementById('vid-cov').textContent = isOptimized ? '99.4%' : '88.2%';
+
+      const step = 8;
+      const imgData = ctx.createImageData(cvs.width, cvs.height);
+      const data = imgData.data;
+
+      const n = freq >= 28.0 ? 3.8 : (freq >= 5.0 ? 3.2 : 2.7);
+      const pl0 = 20 * Math.log10(freq * 1000) - 27.55;
+
+      for (let y = 0; y < cvs.height; y += step) {
+        for (let x = 0; x < cvs.width; x += step) {
+          let maxRssi = -120;
+          APs.forEach(ap => {
+            const dist = Math.max(1, Math.hypot(x - ap.x, y - ap.y) * 0.15);
+            let pathLoss = pl0 + 10 * n * Math.log10(dist);
+            
+            if ((ap.x < wall.x1 && x > wall.x1) || (ap.x > wall.x1 && x < wall.x1)) {
+              pathLoss += isOptimized ? 5 : wall.attenuation;
+            }
+
+            const pwr = isOptimized ? ap.power + 5 : ap.power;
+            const rssi = pwr - pathLoss;
+            if (rssi > maxRssi) maxRssi = rssi;
+          });
+
+          let norm = Math.max(0, Math.min(1, (maxRssi + 95) / 60));
+          let r = Math.floor(239 * (1 - norm) + 34 * norm);
+          let g = Math.floor(68 * (1 - norm) + 197 * norm);
+          let b = Math.floor(68 * (1 - norm) + 94 * norm);
+
+          for (let dy = 0; dy < step && (y + dy) < cvs.height; dy++) {
+            for (let dx = 0; dx < step && (x + dx) < cvs.width; dx++) {
+              const idx = ((y + dy) * cvs.width + (x + dx)) * 4;
+              data[idx] = r; data[idx+1] = g; data[idx+2] = b; data[idx+3] = 190;
+            }
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      APs.forEach(ap => {
+        const waveRadius = ((t * 40) % 150) + 10;
+        ctx.beginPath();
+        ctx.arc(ap.x, ap.y, waveRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(129, 140, 248, ${1 - waveRadius / 150})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(ap.x, ap.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#4f46e5';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ap.name, ap.x, ap.y - 18);
+      });
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(wall.x1, wall.y1);
+      ctx.lineTo(wall.x2, wall.y2);
+      ctx.stroke();
+
+      if (isOptimized) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.9)';
+        ctx.fillRect(cvs.width / 2 - 140, 20, 280, 28);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ AI SPECTRUM OPTIMIZATION APPLIED', cvs.width / 2, 38);
+      }
+    }
+
+    function loop(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        currentTime += delta * playbackSpeed;
+        if (currentTime >= 30) {
+          currentTime = 30;
+          pauseVideo();
+        }
+        timeline.value = currentTime;
+        updateTimeDisplay();
+      }
+
+      renderVideoFrame(currentTime);
+
+      if (isPlaying) {
+        animFrame = requestAnimationFrame(loop);
+      }
+    }
+
+    function playVideo() {
+      isPlaying = true;
+      if (currentTime >= 30) currentTime = 0;
+      playOverlay.classList.add('opacity-0', 'pointer-events-none');
+      iconPlay.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+      labelPlay.textContent = 'Pause Video';
+      lastTimestamp = 0;
+      animFrame = requestAnimationFrame(loop);
+    }
+
+    function pauseVideo() {
+      isPlaying = false;
+      playOverlay.classList.remove('opacity-0', 'pointer-events-none');
+      iconPlay.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      labelPlay.textContent = 'Play Video';
+      if (animFrame) cancelAnimationFrame(animFrame);
+    }
+
+    function updateTimeDisplay() {
+      const sec = Math.floor(currentTime);
+      timeCurrent.textContent = `00:${sec < 10 ? '0' + sec : sec}`;
+    }
+
+    btnPlay.addEventListener('click', () => isPlaying ? pauseVideo() : playVideo());
+    playOverlay.addEventListener('click', playVideo);
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      currentTime = 0;
+      timeline.value = 0;
+      updateTimeDisplay();
+      renderVideoFrame(0);
+    });
+
+    timeline.addEventListener('input', (e) => {
+      currentTime = parseFloat(e.target.value);
+      updateTimeDisplay();
+      renderVideoFrame(currentTime);
+    });
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.className = 'speed-btn px-2 py-1 bg-slate-800 text-slate-400 rounded hover:text-white');
+        btn.className = 'speed-btn px-2 py-1 bg-indigo-600 text-white rounded font-bold';
+        playbackSpeed = parseFloat(btn.dataset.speed);
+      });
+    });
+
+    renderVideoFrame(0);
+  </script>
+</body>
+</html>

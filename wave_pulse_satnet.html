@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAVE-PULSE AI // SAT-NET Satellite Networking & AI Wave Sensor Coverage Prototype</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #030712; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+    
+    .glass-panel {
+      background: rgba(11, 19, 41, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(34, 211, 238, 0.15);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+    
+    .panel-card {
+      background: #091026;
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+    }
+
+    .custom-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #1e293b;
+      outline: none;
+    }
+
+    .custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+      box-shadow: 0 0 10px #22d3ee;
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(34, 211, 238, 0.35);
+    }
+
+    .glow-purple {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.35);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #091026;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 gap-3 bg-[#030712]">
+
+  <!-- TOP HEADER BAR -->
+  <header class="glass-panel rounded-xl px-5 py-3 flex flex-wrap items-center justify-between border-cyan-500/20 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-cyan-950/60 text-cyan-400 rounded-xl border border-cyan-500/40 glow-cyan">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-black tracking-wider text-white flex items-center gap-2 font-mono">
+          WAVE-PULSE AI <span class="text-cyan-400">// SAT-NET</span>
+        </h1>
+        <p class="text-xs text-slate-400">Satellite Networking & AI Wave Sensor Coverage Prototype</p>
+      </div>
+    </div>
+
+    <div class="hidden lg:flex items-center gap-6 text-xs">
+      <div class="border-l border-slate-800 pl-4">
+        <span class="text-slate-400 block text-[10px] uppercase font-mono">Active Constellation</span>
+        <span class="font-bold text-white text-sm">16 Nodes <span class="text-slate-400 text-xs font-normal">(LEO/MEO)</span></span>
+      </div>
+      <div class="border-l border-slate-800 pl-4">
+        <span class="text-slate-400 block text-[10px] uppercase font-mono">Sensor Coverage</span>
+        <span class="font-bold text-cyan-400 text-sm">48.2 Million km²</span>
+      </div>
+      <div class="border-l border-slate-800 pl-4">
+        <span class="text-slate-400 block text-[10px] uppercase font-mono">Avg Link Latency</span>
+        <span class="font-bold text-emerald-400 text-sm">24.5 ms</span>
+      </div>
+      <div class="border-l border-slate-800 pl-4">
+        <span class="text-slate-400 block text-[10px] uppercase font-mono">AI Wave Detection</span>
+        <span id="badge-ai-status" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[11px] font-semibold tracking-wide">
+          NOMINAL MONITORING
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button id="btn-model-inspector" class="px-3.5 py-2 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer glow-purple">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        AI Model Inspector
+      </button>
+
+      <button id="btn-zip" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Zip Package
+      </button>
+
+      <button id="btn-inject-anomaly" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-500/25 transition-all cursor-pointer">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Inject Anomaly
+      </button>
+
+      <button id="btn-audio" class="p-2 bg-slate-900 border border-slate-700 text-slate-300 rounded-lg hover:text-white cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP GRID LAYOUT -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden">
+
+    <!-- LEFT COLUMN -->
+    <aside class="lg:col-span-3 flex flex-col gap-3">
+      <div class="panel-card p-4 space-y-3.5 border-slate-800">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Orbital & Link Controls
+          </h2>
+          <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800">SAT-SYS 4.2</span>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Constellation Altitude</span>
+              <strong class="text-cyan-400 font-mono" id="val-alt">550 km (LEO)</strong>
+            </div>
+            <input type="range" id="slider-alt" min="350" max="1200" value="550" class="custom-slider">
+            <div class="flex justify-between text-[9px] text-slate-500 font-mono mt-0.5">
+              <span>350km</span><span>550km</span><span>1200km</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Orbital Inclination</span>
+              <strong class="text-cyan-400 font-mono" id="val-inc">53° Polar/Equatorial</strong>
+            </div>
+            <input type="range" id="slider-inc" min="0" max="98" value="53" class="custom-slider">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-slate-300 mb-1">
+              <span>Satellite Beam Steering Cone ($\theta$)</span>
+              <strong class="text-cyan-400 font-mono" id="val-beam">45° Half-Angle</strong>
+            </div>
+            <input type="range" id="slider-beam" min="15" max="75" value="45" class="custom-slider">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-slate-400 block mb-1">Frequency Transceiver Band</label>
+          <select id="select-freq-band" class="w-full bg-[#030712] border border-slate-700 text-xs rounded-lg p-2 text-cyan-300 focus:outline-none focus:border-cyan-500 font-mono">
+            <option value="ka">Ka-Band (26.5 - 40 GHz) High Bandwidth</option>
+            <option value="ku">Ku-Band (12 - 18 GHz) Standard SatCom</option>
+            <option value="vlf">VLF Acoustic (0 - 100 Hz) Oceanic</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel-card p-4 space-y-3 border-slate-800 flex-1">
+        <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+          AI Sensor Network Deployment
+        </h2>
+
+        <div class="grid grid-cols-3 gap-1.5">
+          <button data-sensortype="buoy" class="sensor-type-btn p-2 rounded-lg border text-[11px] font-semibold text-center transition-all bg-cyan-950/60 border-cyan-500 text-cyan-300 flex flex-col items-center gap-1 cursor-pointer">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Oceanic Buoy
+          </button>
+          <button data-sensortype="seismic" class="sensor-type-btn p-2 rounded-lg border border-slate-800 bg-[#030712] text-[11px] font-semibold text-slate-400 hover:text-white text-center transition-all flex flex-col items-center gap-1 cursor-pointer">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            Seismic Node
+          </button>
+          <button data-sensortype="radar" class="sensor-type-btn p-2 rounded-lg border border-slate-800 bg-[#030712] text-[11px] font-semibold text-slate-400 hover:text-white text-center transition-all flex flex-col items-center gap-1 cursor-pointer">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10 10 0 0114.142 0M2.828 9.9a15 15 0 0121.214 0"/></svg>
+            RF Scatter Radar
+          </button>
+        </div>
+
+        <p class="text-[10px] text-slate-400 leading-relaxed italic flex items-center gap-1">
+          <svg class="w-3 h-3 text-cyan-400 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          Click anywhere on the Global Map to deploy new AI wave sensors.
+        </p>
+
+        <div class="space-y-1.5 text-xs text-slate-300 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-footprints" checked class="accent-cyan-500 rounded">
+            <span>Satellite Coverage Footprints</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-beams" checked class="accent-cyan-500 rounded">
+            <span>Active Uplink / Downlink Beams</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-heatmap" checked class="accent-cyan-500 rounded">
+            <span>Signal Density Heatmap</span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN -->
+    <div class="lg:col-span-6 flex flex-col gap-3">
+      <div class="panel-card p-3 flex flex-col gap-2 flex-1 min-h-[380px] border-slate-800 relative">
+        <div class="flex items-center justify-between px-1">
+          <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 012 2h1.5a2.5 2.5 0 002.5-2.5V11a2 2 0 012-2h1.065"/></svg>
+            Global Constellation & Sensor Network Coverage Map
+          </h2>
+          <div class="flex items-center gap-2 text-[10px]">
+            <button id="btn-view-mode" class="px-2.5 py-1 bg-cyan-950/60 border border-cyan-500 text-cyan-300 rounded font-mono cursor-pointer">2D Equirectangular</button>
+            <button id="btn-reset-map" class="px-2 py-1 bg-slate-900 border border-slate-700 text-slate-400 rounded hover:text-white cursor-pointer">Reset View</button>
+          </div>
+        </div>
+
+        <div class="relative flex-1 bg-[#020613] rounded-lg border border-slate-800 overflow-hidden flex justify-center items-center">
+          <canvas id="map-canvas" width="760" height="340" class="w-full h-full cursor-crosshair"></canvas>
+
+          <div id="map-toast" class="absolute top-3 left-1/2 -translate-x-1/2 bg-cyan-950/90 text-cyan-300 border border-cyan-500/40 text-[10px] font-mono px-3 py-1 rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none">
+            📍 Sensor Node Deployed to Map
+          </div>
+
+          <div class="absolute bottom-2 left-2 right-2 bg-[#060c1d]/90 backdrop-blur border border-slate-800/80 rounded px-3 py-1.5 flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-300">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Satellite (LEO/MEO)</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Ocean Wave AI Buoy</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-400"></span> Seismic Frequency Array</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> RF Infrasound Radar</span>
+            <span class="text-cyan-400">─ Sat-to-Ground Uplink Beam</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card p-3 space-y-2 border-slate-800">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Wave Frequency Spectrum & Waterfall Spectrogram
+          </h2>
+
+          <div class="flex gap-1 text-[10px] font-mono">
+            <button class="spec-tab px-2 py-0.5 rounded bg-purple-900/60 border border-purple-500 text-purple-200">VLF Acoustic (0-100 Hz)</button>
+            <button class="spec-tab px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white">Ocean Swell (0.1-5 Hz)</button>
+            <button class="spec-tab px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white">RF Radar (1-10 MHz)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-[#020613] p-2 rounded-lg border border-slate-800 space-y-1">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400">
+              <span>Real-time FFT Frequency Spectrum</span>
+              <span class="text-cyan-400">Center: 42.5 Hz</span>
+            </div>
+            <canvas id="fft-canvas" width="340" height="95" class="w-full h-24 rounded bg-[#030818]"></canvas>
+          </div>
+
+          <div class="bg-[#020613] p-2 rounded-lg border border-slate-800 space-y-1">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400">
+              <span>Waterfall Spectrogram (Frequency vs Time)</span>
+              <span class="text-emerald-400">Sampling: 1024 Hz</span>
+            </div>
+            <canvas id="waterfall-canvas" width="340" height="95" class="w-full h-24 rounded bg-[#030818]"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <aside class="lg:col-span-3 flex flex-col gap-3">
+      <div class="panel-card p-4 space-y-3 border-purple-500/20 shadow-lg">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            AI Signal Neural Classifier
+          </h2>
+          <span class="text-[10px] font-mono text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800">DEEP-WAVE V3</span>
+        </div>
+
+        <div class="bg-[#030818] border border-purple-500/30 rounded-lg p-3 space-y-1.5">
+          <div class="flex justify-between text-[10px] font-mono">
+            <span class="text-slate-400">DETECTED SIGNAL PATTERN</span>
+            <span id="ai-confidence" class="text-emerald-400 font-bold">98.4% Confidence</span>
+          </div>
+          <div id="ai-pattern-title" class="text-base font-black text-cyan-400 font-mono tracking-tight">
+            NORMAL OCEAN SWELL
+          </div>
+          
+          <div class="pt-1">
+            <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
+              <span>Threat / Anomaly Severity</span>
+              <span id="threat-label" class="text-emerald-400">LOW (0.12)</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="threat-bar" class="h-full bg-emerald-400 transition-all duration-500" style="width: 12%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs font-mono">
+          <span class="text-[10px] text-slate-400 block uppercase">AI Feature Extraction</span>
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>Peak Spectral Energy</span><span id="f1-val">0.84</span></div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="f1-bar" class="h-full bg-purple-400 transition-all" style="width: 84%;"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>Harmonic Entropy</span><span id="f2-val">0.42</span></div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="f2-bar" class="h-full bg-purple-400 transition-all" style="width: 42%;"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-300 mb-0.5"><span>Doppler Frequency Shift</span><span id="f3-val">0.18</span></div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div id="f3-bar" class="h-full bg-purple-400 transition-all" style="width: 18%;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card p-4 space-y-2 border-slate-800 text-xs font-mono">
+        <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono mb-1">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+          Active Sensor Node Inspector
+        </h2>
+
+        <div class="space-y-1.5 text-slate-300">
+          <div class="flex justify-between border-b border-slate-800/60 pb-1">
+            <span class="text-slate-400">Node ID:</span>
+            <strong id="node-id" class="text-cyan-400">BUOY-PACIFIC-01</strong>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-1">
+            <span class="text-slate-400">Type:</span>
+            <span id="node-type">Hydro-Acoustic Wave Array</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-1">
+            <span class="text-slate-400">Linked Satellite:</span>
+            <strong id="node-sat" class="text-cyan-400">SAT-04 (LEO-550)</strong>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-1">
+            <span class="text-slate-400">Dominant Frequency:</span>
+            <span id="node-freq" class="text-emerald-400 font-bold">0.24 Hz (Long Swell)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Wave Amplitude:</span>
+            <span id="node-amp" class="text-white font-bold">1.82 meters</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card p-4 flex-1 space-y-2 border-slate-800 flex flex-col">
+        <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Real-time AI Event Stream
+        </h2>
+
+        <div id="event-stream" class="flex-1 max-h-40 overflow-y-auto space-y-1 text-[10px] font-mono pr-1 custom-scrollbar">
+          <div class="text-slate-400"><span class="text-cyan-400">14:32:01</span> SENSOR-01 CALIBRATED OK</div>
+          <div class="text-slate-400"><span class="text-cyan-400">14:32:05</span> RF ANOMALY DETECTED (ZONE C)</div>
+          <div class="text-slate-400"><span class="text-cyan-400">14:32:10</span> 3D MAPPING UPDATE COMPLETED</div>
+          <div class="text-slate-400"><span class="text-cyan-400">14:32:15</span> SIGNAL STRENGTH STABLE</div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- MODAL -->
+  <div id="modal-inspector" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity">
+    <div class="glass-panel border-purple-500/40 rounded-2xl p-6 max-w-2xl w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white font-mono flex items-center gap-2">
+          🧠 DEEP-WAVE V3 Neural Network Model Inspector
+        </h3>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-white font-bold cursor-pointer text-lg">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs font-mono text-slate-300">
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 bg-[#030818] rounded-lg border border-slate-800"><span class="block text-[10px] text-slate-400">CONV2D LAYERS</span><strong class="text-cyan-400 text-lg">12 Layers</strong></div>
+          <div class="p-3 bg-[#030818] rounded-lg border border-slate-800"><span class="block text-[10px] text-slate-400">WEIGHT PARAMETERS</span><strong class="text-purple-400 text-lg">4.8 Million</strong></div>
+          <div class="p-3 bg-[#030818] rounded-lg border border-slate-800"><span class="block text-[10px] text-slate-400">LATENCY / INFERENCE</span><strong class="text-emerald-400 text-lg">1.4 ms</strong></div>
+        </div>
+        <p class="text-slate-400 text-[11px] leading-relaxed">
+          The Deep-Wave V3 Convolutional Recurrent Neural Network (CRNN) continuously ingests hydro-acoustic, infrasound, and Ka-band RF scatter cross-sections to detect oceanic anomalies, sub-surface seismic events, and satellite link disruptions.
+        </p>
+      </div>
+      <div class="flex justify-end pt-2">
+        <button id="btn-close-modal-2" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg cursor-pointer">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      satellites: [],
+      sensors: [
+        { id: 'BUOY-PACIFIC-01', x: 220, y: 160, type: 'buoy', name: 'Pacific Buoy Array', freq: '0.24 Hz', amp: '1.82 m' },
+        { id: 'SEISMIC-ATLANTIC-04', x: 450, y: 140, type: 'seismic', name: 'Atlantic Seismic Node', freq: '12.4 Hz', amp: '0.04 m' },
+        { id: 'RADAR-INDIAN-02', x: 550, y: 220, type: 'radar', name: 'Indian Ocean RF Radar', freq: '2.40 MHz', amp: 'N/A' }
+      ],
+      selectedSensorType: 'buoy',
+      isAnomaly: false,
+      altitude: 550,
+      inclination: 53,
+      beamAngle: 45,
+      showFootprints: true,
+      showBeams: true
+    };
+
+    const mapCvs = document.getElementById('map-canvas');
+    const mapCtx = mapCvs.getContext('2d');
+    const fftCvs = document.getElementById('fft-canvas');
+    const fftCtx = fftCvs.getContext('2d');
+    const wfCvs = document.getElementById('waterfall-canvas');
+    const wfCtx = wfCvs.getContext('2d');
+
+    for (let i = 0; i < 16; i++) {
+      state.satellites.push({
+        id: `SAT-${(i + 1).toString().padStart(2, '0')}`,
+        orbitAngle: (i * Math.PI / 8),
+        speed: 0.005 + (i % 3) * 0.002,
+        radiusY: 100 + (i % 4) * 20
+      });
+    }
+
+    function drawWorldOutline(ctx, w, h) {
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.8)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 60) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+
+      ctx.beginPath();
+      ctx.moveTo(w * 0.15, h * 0.2); ctx.lineTo(w * 0.35, h * 0.22); ctx.lineTo(w * 0.3, h * 0.45); ctx.lineTo(w * 0.18, h * 0.4); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(w * 0.28, h * 0.5); ctx.lineTo(w * 0.38, h * 0.55); ctx.lineTo(w * 0.32, h * 0.85); ctx.lineTo(w * 0.26, h * 0.65); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(w * 0.45, h * 0.18); ctx.lineTo(w * 0.85, h * 0.2); ctx.lineTo(w * 0.78, h * 0.5); ctx.lineTo(w * 0.5, h * 0.55); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(w * 0.75, h * 0.65); ctx.lineTo(w * 0.88, h * 0.65); ctx.lineTo(w * 0.85, h * 0.82); ctx.lineTo(w * 0.73, h * 0.8); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+
+    function renderMap() {
+      const w = mapCvs.width;
+      const h = mapCvs.height;
+
+      mapCtx.fillStyle = '#020613';
+      mapCtx.fillRect(0, 0, w, h);
+
+      drawWorldOutline(mapCtx, w, h);
+      const time = Date.now() * 0.001;
+
+      state.satellites.forEach((sat, idx) => {
+        sat.orbitAngle += sat.speed * (state.isAnomaly ? 2.0 : 1.0);
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const rx = w * 0.42;
+        const ry = sat.radiusY;
+
+        const sx = cx + Math.cos(sat.orbitAngle + idx) * rx;
+        const sy = cy + Math.sin(sat.orbitAngle + idx * 0.5) * ry * (state.inclination / 90.0);
+
+        if (state.showFootprints) {
+          mapCtx.beginPath();
+          mapCtx.arc(sx, sy, state.beamAngle * 0.8, 0, Math.PI * 2);
+          mapCtx.fillStyle = state.isAnomaly ? 'rgba(244, 63, 94, 0.06)' : 'rgba(34, 211, 238, 0.05)';
+          mapCtx.fill();
+          mapCtx.strokeStyle = state.isAnomaly ? 'rgba(244, 63, 94, 0.2)' : 'rgba(34, 211, 238, 0.15)';
+          mapCtx.stroke();
+        }
+
+        if (state.showBeams) {
+          state.sensors.forEach(sn => {
+            const dist = Math.hypot(sx - sn.x, sy - sn.y);
+            if (dist < 180) {
+              mapCtx.beginPath();
+              mapCtx.moveTo(sx, sy);
+              mapCtx.lineTo(sn.x, sn.y);
+              mapCtx.strokeStyle = state.isAnomaly ? 'rgba(244, 63, 94, 0.4)' : 'rgba(34, 211, 238, 0.35)';
+              mapCtx.lineWidth = 1;
+              mapCtx.setLineDash([4, 4]);
+              mapCtx.stroke();
+              mapCtx.setLineDash([]);
+            }
+          });
+        }
+
+        mapCtx.beginPath();
+        mapCtx.arc(sx, sy, 4, 0, Math.PI * 2);
+        mapCtx.fillStyle = state.isAnomaly ? '#f43f5e' : '#22d3ee';
+        mapCtx.fill();
+        mapCtx.strokeStyle = '#ffffff';
+        mapCtx.lineWidth = 1.5;
+        mapCtx.stroke();
+      });
+
+      state.sensors.forEach(sn => {
+        let color = '#22d3ee';
+        if (sn.type === 'seismic') color = '#c084fc';
+        if (sn.type === 'radar') color = '#fbbf24';
+
+        mapCtx.beginPath();
+        mapCtx.arc(sn.x, sn.y, 6, 0, Math.PI * 2);
+        mapCtx.fillStyle = color;
+        mapCtx.fill();
+        mapCtx.strokeStyle = '#ffffff';
+        mapCtx.lineWidth = 2;
+        mapCtx.stroke();
+
+        const ringRad = 8 + (Math.sin(time * 4) + 1) * 6;
+        mapCtx.beginPath();
+        mapCtx.arc(sn.x, sn.y, ringRad, 0, Math.PI * 2);
+        mapCtx.strokeStyle = color;
+        mapCtx.lineWidth = 1;
+        mapCtx.stroke();
+
+        mapCtx.fillStyle = '#f8fafc';
+        mapCtx.font = '9px monospace';
+        mapCtx.fillText(sn.id, sn.x + 10, sn.y + 3);
+      });
+    }
+
+    function renderFFT() {
+      const w = fftCvs.width;
+      const h = fftCvs.height;
+      fftCtx.clearRect(0, 0, w, h);
+
+      fftCtx.beginPath();
+      fftCtx.moveTo(0, h);
+
+      const time = Date.now() * 0.003;
+      for (let x = 0; x < w; x += 3) {
+        const norm = x / w;
+        let p = Math.sin(norm * 15 + time) * 15 + Math.cos(norm * 30 - time) * 10;
+        if (state.isAnomaly && norm > 0.4 && norm < 0.6) p += Math.sin((norm - 0.4) * 20 * Math.PI) * 45;
+
+        const y = h - 20 - p;
+        fftCtx.lineTo(x, y);
+      }
+
+      fftCtx.strokeStyle = state.isAnomaly ? '#f43f5e' : '#c084fc';
+      fftCtx.lineWidth = 1.5;
+      fftCtx.stroke();
+
+      fftCtx.lineTo(w, h);
+      fftCtx.lineTo(0, h);
+      const grad = fftCtx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, state.isAnomaly ? 'rgba(244, 63, 94, 0.4)' : 'rgba(192, 132, 252, 0.3)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      fftCtx.fillStyle = grad;
+      fftCtx.fill();
+    }
+
+    const wfImgData = wfCtx.createImageData(wfCvs.width, wfCvs.height);
+    function renderWaterfall() {
+      const w = wfCvs.width;
+      const h = wfCvs.height;
+      const data = wfImgData.data;
+
+      for (let y = h - 1; y > 0; y--) {
+        for (let x = 0; x < w; x++) {
+          const srcIdx = ((y - 1) * w + x) * 4;
+          const dstIdx = (y * w + x) * 4;
+          data[dstIdx] = data[srcIdx];
+          data[dstIdx + 1] = data[srcIdx + 1];
+          data[dstIdx + 2] = data[srcIdx + 2];
+          data[dstIdx + 3] = data[srcIdx + 3];
+        }
+      }
+
+      const time = Date.now() * 0.005;
+      for (let x = 0; x < w; x++) {
+        const norm = x / w;
+        let val = Math.sin(norm * 10 + time) * 0.5 + 0.5;
+        if (state.isAnomaly && norm > 0.4 && norm < 0.6) val = 1.0;
+
+        const idx = x * 4;
+        data[idx] = Math.floor(val * (state.isAnomaly ? 244 : 34));
+        data[idx + 1] = Math.floor(val * (state.isAnomaly ? 63 : 211));
+        data[idx + 2] = Math.floor(val * (state.isAnomaly ? 94 : 238));
+        data[idx + 3] = 255;
+      }
+
+      wfCtx.putImageData(wfImgData, 0, 0);
+    }
+
+    function animationLoop() {
+      requestAnimationFrame(animationLoop);
+      renderMap();
+      renderFFT();
+      renderWaterfall();
+    }
+
+    mapCvs.addEventListener('click', (e) => {
+      const rect = mapCvs.getBoundingClientRect();
+      const x = Math.round((e.clientX - rect.left) * (mapCvs.width / rect.width));
+      const y = Math.round((e.clientY - rect.top) * (mapCvs.height / rect.height));
+
+      const newId = `${state.selectedSensorType.toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+      state.sensors.push({
+        id: newId,
+        x, y,
+        type: state.selectedSensorType,
+        name: `Deployed ${state.selectedSensorType} Node`,
+        freq: '0.45 Hz',
+        amp: '2.10 m'
+      });
+
+      document.getElementById('node-id').textContent = newId;
+      document.getElementById('node-type').textContent = `${state.selectedSensorType} Wave Array`;
+
+      const log = document.createElement('div');
+      log.className = 'text-slate-400';
+      log.innerHTML = `<span class="text-cyan-400">${new Date().toLocaleTimeString()}</span> ${newId} DEPLOYED TO MAP`;
+      const stream = document.getElementById('event-stream');
+      stream.insertBefore(log, stream.firstChild);
+
+      const toast = document.getElementById('map-toast');
+      toast.classList.remove('opacity-0');
+      setTimeout(() => toast.classList.add('opacity-0'), 2000);
+    });
+
+    document.getElementById('slider-alt').addEventListener('input', (e) => {
+      state.altitude = parseInt(e.target.value);
+      document.getElementById('val-alt').textContent = `${state.altitude} km (LEO)`;
+    });
+
+    document.getElementById('slider-inc').addEventListener('input', (e) => {
+      state.inclination = parseInt(e.target.value);
+      document.getElementById('val-inc').textContent = `${state.inclination}° Polar/Equatorial`;
+    });
+
+    document.getElementById('slider-beam').addEventListener('input', (e) => {
+      state.beamAngle = parseInt(e.target.value);
+      document.getElementById('val-beam').textContent = `${state.beamAngle}° Half-Angle`;
+    });
+
+    document.querySelectorAll('.sensor-type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sensor-type-btn').forEach(b => {
+          b.className = 'sensor-type-btn p-2 rounded-lg border border-slate-800 bg-[#030712] text-[11px] font-semibold text-slate-400 hover:text-white text-center transition-all flex flex-col items-center gap-1 cursor-pointer';
+        });
+        btn.className = 'sensor-type-btn p-2 rounded-lg border text-[11px] font-semibold text-center transition-all bg-cyan-950/60 border-cyan-500 text-cyan-300 flex flex-col items-center gap-1 cursor-pointer';
+        state.selectedSensorType = btn.dataset.sensortype;
+      });
+    });
+
+    document.getElementById('btn-inject-anomaly').addEventListener('click', () => {
+      state.isAnomaly = !state.isAnomaly;
+      const badge = document.getElementById('badge-ai-status');
+      const pattern = document.getElementById('ai-pattern-title');
+      const threatLabel = document.getElementById('threat-label');
+      const threatBar = document.getElementById('threat-bar');
+      const stream = document.getElementById('event-stream');
+
+      if (state.isAnomaly) {
+        badge.textContent = 'HIGH ANOMALY DETECTED';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[11px] font-semibold tracking-wide animate-pulse';
+
+        pattern.textContent = 'SEISMIC TSUNAMI WAVE DETECTED';
+        pattern.className = 'text-base font-black text-rose-500 font-mono tracking-tight animate-pulse';
+
+        threatLabel.textContent = 'HIGH (0.89)';
+        threatLabel.className = 'text-rose-400 font-bold';
+        threatBar.className = 'h-full bg-rose-500 transition-all duration-500';
+        threatBar.style.width = '89%';
+
+        const log = document.createElement('div');
+        log.className = 'text-rose-400 font-bold';
+        log.innerHTML = `<span class="text-rose-300">${new Date().toLocaleTimeString()}</span> ⚠️ ANOMALOUS SEISMIC WAVE INJECTED!`;
+        stream.insertBefore(log, stream.firstChild);
+      } else {
+        badge.textContent = 'NOMINAL MONITORING';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[11px] font-semibold tracking-wide';
+
+        pattern.textContent = 'NORMAL OCEAN SWELL';
+        pattern.className = 'text-base font-black text-cyan-400 font-mono tracking-tight';
+
+        threatLabel.textContent = 'LOW (0.12)';
+        threatLabel.className = 'text-emerald-400';
+        threatBar.className = 'h-full bg-emerald-400 transition-all duration-500';
+        threatBar.style.width = '12%';
+
+        const log = document.createElement('div');
+        log.className = 'text-slate-400';
+        log.innerHTML = `<span class="text-cyan-400">${new Date().toLocaleTimeString()}</span> RECOVERED TO NOMINAL STATE`;
+        stream.insertBefore(log, stream.firstChild);
+      }
+    });
+
+    document.getElementById('chk-footprints').addEventListener('change', (e) => state.showFootprints = e.target.checked);
+    document.getElementById('chk-beams').addEventListener('change', (e) => state.showBeams = e.target.checked);
+
+    const modal = document.getElementById('modal-inspector');
+    document.getElementById('btn-model-inspector').addEventListener('click', () => modal.classList.remove('opacity-0', 'pointer-events-none'));
+    document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('opacity-0', 'pointer-events-none'));
+    document.getElementById('btn-close-modal-2').addEventListener('click', () => modal.classList.add('opacity-0', 'pointer-events-none'));
+
+    document.getElementById('btn-zip').addEventListener('click', () => alert('WAVE-PULSE AI SAT-NET Prototype source bundle download ready.'));
+
+    animationLoop();
+  </script>
+</body>
+</html>
